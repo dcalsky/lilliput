@@ -88,6 +88,14 @@ ipcMain.on('create-spec', (e, arg) => {
   e.returnValue = createSpec(arg);
 });
 
+ipcMain.on('remove-spec', (e, arg) => {
+  const { specName, projectName } = arg;
+  const specPath = path.join(baseDir, projectName, specName);
+  fs.unlink(specPath, (err) => {
+    console.log(err);
+  });
+});
+
 ipcMain.on('save-project', (e, arg) => {
   const { name } = arg;
   const projectStatusPath = path.join(baseDir, name, 'status.json');

@@ -8,7 +8,9 @@ const path = require('path');
 require('codemirror/mode/javascript/javascript');
 
 const menu = new Menu();
-let currentCase = null;
+const specMenu = new Menu();
+let currentMenuCase = null;
+let currentMenuSpec = null;
 
 class Bug {
   constructor(status) {
@@ -80,7 +82,7 @@ class Case {
 
   bindClickEvent() {
     this.$el.on('contextmenu', (e) => {
-      currentCase = this.id;
+      currentMenuCase = this.id;
       menu.popup(remote.getCurrentWindow());
     });
   }
@@ -103,6 +105,10 @@ class Spec {
   }
 
   bindClickEvent() {
+    this.$el.on('contextmenu', (e) => {
+      currentMenuSpec = this;
+      specMenu.popup(remote.getCurrentWindow());
+    });
     this.$el.click(() => {
       this.switchFn(this);
     });
@@ -167,6 +173,14 @@ class Project {
   addSpec(name) {
     const id = this.specs.length + 1;
     this.specs.push(new Spec({ name, id }, this.switchSpecFn));
+  }
+
+  removeSpec(spec) {
+    ipcRenderer.send('remove-spec', {
+      specName: spec.name,
+      projectName: this.name
+    });
+    this.specs = this.specs.filter(item => item.id !== spec.id);
   }
 
   save() {
@@ -388,6 +402,34 @@ $(document).ready(() => {
       projectName: currentProject.name
     });
   }
+  function initCaseMenu() {
+    currentSpec.bugs.forEach((item) => {
+      menu.append(
+        new MenuItem({
+          label: `Add it to Bug.${item.id}`,
+          click() {
+            item.addCase(currentMenuCase);
+            save();
+            freshBugs();
+          }
+        })
+      );
+    });
+  }
+  function initSpecMenu() {
+    specMenu.append(
+      new MenuItem({
+        label: 'Delete',
+        click() {
+          currentProject.removeSpec(currentMenuSpec);
+          save();
+          freshSpecs();
+          console.log(currentProject);
+        }
+      })
+    );
+  }
+  function initProjectMenu() {}
   function initialize() {
     freshProjects();
     freshSpecs();
@@ -443,18 +485,6 @@ $(document).ready(() => {
         }
       });
     });
-    currentSpec.bugs.forEach((item) => {
-      menu.append(
-        new MenuItem({
-          label: `Add it to Bug.${item.id}`,
-          click() {
-            item.addCase(currentCase);
-            save();
-            freshBugs();
-          }
-        })
-      );
-    });
     ipcRenderer.on('run-test-resp', (event, arg) => {
       const { passed, failed, cases } = arg;
       currentSpec.passed = passed;
@@ -463,5 +493,7 @@ $(document).ready(() => {
       currentProject.save();
       freshStatus();
     });
+    initCaseMenu();
+    initSpecMenu();
   }
 });
