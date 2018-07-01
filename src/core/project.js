@@ -63,16 +63,17 @@ function createProject(name) {
 }
 
 function createSpec(arg) {
-  const { projectName, specName } = arg;
+  let { projectName, specName } = arg;
   const projectPath = path.join(baseDir, projectName);
+  let specPath = path.join(projectPath, 'specs', `${specName}.js`);
+  if (fs.existsSync(specPath)) {
+    specName = `${specName} - ${new Date().getTime()}`;
+    specPath = path.join(projectPath, 'specs', `${specName}.js`);
+  }
   try {
-    fs.writeFileSync(
-      path.join(projectPath, 'specs', `${specName}.js`),
-      '// Write some cases here',
-      {
-        encoding: 'utf8'
-      }
-    );
+    fs.writeFileSync(specPath, '// Write some cases here', {
+      encoding: 'utf8'
+    });
     return true;
   } catch (err) {
     console.log(err);
@@ -90,7 +91,7 @@ ipcMain.on('create-spec', (e, arg) => {
 
 ipcMain.on('remove-spec', (e, arg) => {
   const { specName, projectName } = arg;
-  const specPath = path.join(baseDir, projectName, specName);
+  const specPath = path.join(baseDir, projectName, 'specs', `${specName}.js`);
   fs.unlink(specPath, (err) => {
     console.log(err);
   });
