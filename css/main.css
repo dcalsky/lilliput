@@ -20,13 +20,23 @@
 }
 
 .drag-box .drag-icon {
-    cursor: pointer;
-    font-size: 2.5rem;
-    margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 2.5rem;
+  margin-bottom: 12px;
 }
 
 .drag-box p {
-    cursor: pointer;
-    font-size: 1.1rem;
-    margin: 5px 0;
+  cursor: pointer;
+  font-size: 1.1rem;
+  margin: 5px 0;
+}
+
+#bug-box {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+#bug-box .bug-case {
+  margin: 0 2.5px;
+  font-weight: 600;
 }

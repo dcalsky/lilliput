@@ -43,7 +43,7 @@
           <ul class="list-group spec-box">
             <li class="list-group-header">
               <input class="form-control" type="text" placeholder="Search for spec" style="width: auto;">
-              <button class="btn btn-mini btn-default">
+              <button id="create-spec" class="btn btn-mini btn-default">
                 <span class="icon icon-plus"></span>
               </button>
             </li>
@@ -72,7 +72,7 @@
               <p class="drag-icon">
                 <span class="icon icon-drive"></span>
               </p>
-              <p id="dataset-name">Click or drag CSV file to this area to upload</p>
+              <p id="dataset-name">Drag CSV file to this area to upload</p>
             </div>
           </div>
 
@@ -87,8 +87,8 @@
             <table class="table-striped" style="border: 1px solid rgba(0,0,0,0.2); border-radius: 3px;">
               <thead>
                 <tr>
+                  <th>Case id</th>
                   <th>Case title</th>
-                  <!-- <th>Content</th> -->
                   <th>State</th>
                 </tr>
               </thead>
@@ -98,7 +98,22 @@
           </div>
 
           <div class="form-group">
-            <label>Rate of passed rate</label>
+            <label>Bug Track
+              <button id="create-bug" class="btn btn-mini btn-default">
+                <span class="icon icon-plus"></span>
+              </button>
+            </label>
+
+            <ul id='bug-box' class="list-group">
+
+              <!-- <li class="list-group-header">
+                <input class="form-control" type="text" placeholder="Search for someone">
+              </li> -->
+            </ul>
+          </div>
+
+          <div class="form-group">
+            <label>Rate of case passed rate</label>
             <div id="chart" style="width: 100%; height: 400px">
             </div>
           </div>
@@ -112,7 +127,6 @@
 
   <script src="scripts/echarts.simple.min.js"></script>
   <script src="scripts/main.js" charset="utf-8"></script>
-  <script src="scripts/menu.js"></script>
 </body>
 
 </html>

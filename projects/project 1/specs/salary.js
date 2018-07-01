@@ -1,4 +1,7 @@
 function getResult(a, b, c) {
+  a = parseInt(a);
+  b = parseInt(b);
+  c = parseInt(c);
   let sum = 0;
   sum = 25 * a + 30 * b + 45 * c;
   let extract = 0;
@@ -8,14 +11,13 @@ function getResult(a, b, c) {
   return extract;
 }
 
-describe('triangle', () => {
-  let dataset = readCSV('triangle.csv');
+describe('salary', () => {
+  let dataset = readCSV('salary.csv');
   dataset = dataset.slice(1);
   dataset.forEach((grid, i) => {
     if (!grid || grid.length < 4) return;
-    it(`Test ${i}`, () => {
-      console.log(getTriangle(grid[0], grid[1], grid[2]), grid[3]);
-      assert.equal(getTriangle(grid[0], grid[1], grid[2]), parseInt(grid[3]));
+    it(`should return commision:${grid[3]} when input is: ${[grid[0], grid[1], grid[2]]}`, () => {
+      assert.equal(getResult(grid[0], grid[1], grid[2]), parseFloat(grid[3]));
     });
   });
 });

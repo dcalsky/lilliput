@@ -8,32 +8,70 @@ const path = require('path');
 require('codemirror/mode/javascript/javascript');
 
 const menu = new Menu();
-menu.append(
-  new MenuItem({
-    label: 'Add Bug Track',
-    click() {
-      alert('Deleted');
-    }
-  })
-);
+let currentCase = null;
 
-class Case {
+class Bug {
   constructor(status) {
-    this.bugs = status.bugs || [];
-    this.state = status.state;
-    this.title = status.title;
-    this.$el = $('<tr></tr>').html(`<td>${this.title}</td><td>${this.state}</td>`);
+    this.id = status.id;
+    this.desc = status.desc;
+    this.cases = status.cases || [];
+    this.tags = status.tags || [];
+    this.finished = status.finished || false;
+    this.$el = $('<li class="list-group-item"></li>');
+    this.updateStatus();
+    // $finished.change((e) => {
+    //   console.log(e);
+    // });
   }
 
-  addBug(line, desc) {
-    this.bugs.push({
-      line,
-      desc
-    });
+  updateStatus() {
+    const $finished = $(`<input type="checkbox" ${this.finished && 'true'}/>`);
+    this.$el = $('<li class="list-group-item"></li>').html(`
+    <div class="media-body">
+    <p><label class="bug-finished">Finished </label></p>
+    <strong>ID: ${this.id}</strong>
+    <p>Cases: ${this.cases.map(item => `<span class="bug-case">${item}</span>`)}</p>
+    <p>Description: ${this.desc}</p>
+  </div>
+    `);
+    this.$el.find('.bug-finished').append($finished);
+  }
+
+  toggleFinish(finished) {
+    this.finished = finished;
   }
 
   getBaseInfo() {
     return {
+      id: this.id,
+      desc: this.desc,
+      cases: this.cases,
+      tags: this.tags,
+      finished: this.finished
+    };
+  }
+
+  addCase(caseId) {
+    if (this.cases.indexOf(caseId) === -1) {
+      this.cases.push(caseId);
+      this.updateStatus();
+    }
+  }
+}
+
+class Case {
+  constructor(status) {
+    this.state = status.state;
+    this.title = status.title;
+    this.id = status.id;
+    this.$el = $('<tr></tr>').html(
+      `<td>${this.id}</td><td>${this.title}</td><td>${this.state}</td>`
+    );
+  }
+
+  getBaseInfo() {
+    return {
+      id: this.id,
       state: this.state,
       title: this.title,
       bugs: this.bugs
@@ -41,7 +79,8 @@ class Case {
   }
 
   bindClickEvent() {
-    this.$el.click((e) => {
+    this.$el.on('contextmenu', (e) => {
+      currentCase = this.id;
       menu.popup(remote.getCurrentWindow());
     });
   }
@@ -50,17 +89,27 @@ class Case {
 class Spec {
   constructor(status, switchFn) {
     const cases = status.cases || [];
+    const bugs = status.bugs || [];
     this.passed = status.passed || 0;
     this.failed = status.failed || 0;
     this.id = status.id;
     this.name = status.name;
-    this.desc = status.desc;
-    this.cases = cases.map(s => new Case(s));
+    this.desc = status.desc || '';
+    this.bugs = bugs.map(item => new Bug(item));
+    this.cases = cases.map(item => new Case(item));
     this.$el = $('<li class="list-group-item"></li>');
     this.updatePassedStatus();
+    this.switchFn = switchFn;
+  }
+
+  bindClickEvent() {
     this.$el.click(() => {
-      switchFn(this);
+      this.switchFn(this);
     });
+  }
+
+  createBug(desc) {
+    this.bugs.push(new Bug({ desc, id: this.bugs.length + 1 }));
   }
 
   updatePassedStatus() {
@@ -84,7 +133,8 @@ class Spec {
       desc: this.desc,
       id: this.id,
       failed: this.failed,
-      cases: this.cases.map(c => c.getBaseInfo())
+      cases: this.cases.map(item => item.getBaseInfo()),
+      bugs: this.bugs.map(item => item.getBaseInfo())
     };
   }
 
@@ -104,6 +154,7 @@ class Project {
       switchProjectFn(this);
       this.active();
     });
+    this.switchSpecFn = switchSpecFn;
   }
 
   getBaseInfo() {
@@ -111,6 +162,11 @@ class Project {
       name: this.name,
       specs: this.specs.map(spec => spec.getBaseInfo())
     };
+  }
+
+  addSpec(name) {
+    const id = this.specs.length + 1;
+    this.specs.push(new Spec({ name, id }, this.switchSpecFn));
   }
 
   save() {
@@ -127,21 +183,24 @@ class Project {
 }
 
 $(document).ready(() => {
+  // Electron Drop Trick
   document.addEventListener('dragover', event => event.preventDefault());
   document.addEventListener('drop', event => event.preventDefault());
 
   const chart = echarts.init(document.getElementById('chart'));
   const $projectBox = $('.project-box');
   const $specBox = $('.spec-box');
-  const $projects = $('.project-box .nav-group-item');
   const $specName = $('#spec-name');
   const $save = $('#save');
   const $specId = $('#spec-id');
   const $specDesc = $('#spec-desc');
   const $play = $('#run-task');
   const $createProject = $('#create-project');
+  const $createSpec = $('#createSpec');
   const $cases = $('#cases');
   const $dragBox = $('#drag-box');
+  const $bugBox = $('#bug-box');
+  const $createBug = $('#create-bug');
   const editor = CodeMirror(document.getElementById('editor'), {
     value: '',
     lineNumbers: true,
@@ -201,7 +260,19 @@ $(document).ready(() => {
     currentSpec.updatePassedStatus();
     freshCases();
     freshSpecCode();
+    freshBugs();
     freshChart();
+  }
+
+  function freshBugs() {
+    $bugBox.empty();
+
+    if (currentSpec.bugs.length === 0) {
+      $bugBox.html('<p style="text-align: center;">No bugs</p>');
+    }
+    currentSpec.bugs.forEach((item) => {
+      $bugBox.append(item.$el);
+    });
   }
   function switchSpec(spec) {
     if (currentSpec) {
@@ -217,6 +288,7 @@ $(document).ready(() => {
     $specBox.find('.list-group-item').remove();
     specs.forEach((spec) => {
       $specBox.append(spec.$el);
+      spec.bindClickEvent();
     });
     currentSpec = specs[0] || null;
     currentSpec && switchSpec(currentSpec);
@@ -237,7 +309,9 @@ $(document).ready(() => {
 
   function save() {
     const res = currentProject.save() && submitCode();
-    alert(res ? 'Save project successfully!' : 'Save project failed!');
+    if (res) {
+      freshSpecs();
+    }
   }
 
   function freshChart(passed, failed) {
@@ -271,6 +345,35 @@ $(document).ready(() => {
         if (value) {
           return ipcRenderer.sendSync('create-project', {
             projectName: value
+          });
+        }
+      })
+      .catch(console.error);
+  }
+
+  function createBug() {
+    return prompt({
+      title: 'Lilliput',
+      label: "What's the description of this bug?",
+      type: 'input'
+    })
+      .then((value) => {
+        if (value) {
+          return value;
+        }
+      })
+      .catch(console.error);
+  }
+  function createSpec() {
+    return prompt({
+      title: 'Lilliput',
+      label: "What's the name of this Spec?",
+      type: 'input'
+    })
+      .then((value) => {
+        if (value) {
+          return ipcRenderer.send('create-spec', {
+            specName: value
           });
         }
       })
@@ -318,6 +421,34 @@ $(document).ready(() => {
           alert('Create project failed');
         }
       });
+    });
+    $createBug.click((e) => {
+      createBug().then((desc) => {
+        if (desc) {
+          currentSpec.createBug(desc);
+          save();
+          freshBugs();
+        }
+      });
+    });
+    $createSpec.click((e) => {
+      createSpec().then((name) => {
+        if (res) {
+          currentProject.addCase();
+        }
+      });
+    });
+    currentSpec.bugs.forEach((item) => {
+      menu.append(
+        new MenuItem({
+          label: `Add it to Bug.${item.id}`,
+          click() {
+            item.addCase(currentCase);
+            save();
+            freshBugs();
+          }
+        })
+      );
     });
     ipcRenderer.on('run-test-resp', (event, arg) => {
       const { passed, failed, cases } = arg;

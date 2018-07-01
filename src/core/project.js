@@ -47,12 +47,12 @@ function createProject(name) {
   const projectPath = path.join(baseDir, name);
   const initialStatus = {
     name,
-    specs: [],
+    specs: []
   };
   try {
     fs.mkdirSync(projectPath);
     fs.writeFileSync(path.join(projectPath, 'status.json'), JSON.stringify(initialStatus), {
-      encoding: 'utf8',
+      encoding: 'utf8'
     }); // Create status file
     fs.mkdirSync(path.join(projectPath, 'specs')); // Create specs directory
     return true;
@@ -62,23 +62,38 @@ function createProject(name) {
   }
 }
 
-function createSpec(project, spec) {
-  const { specs } = project;
+function createSpec(name) {
+  const projectPath = path.join(baseDir, name);
+  try {
+    fs.writeFileSync(
+      path.join(projectPath, `${name}.js`),
+      JSON.stringify('// Write some cases here'),
+      {
+        encoding: 'utf8'
+      }
+    );
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
 }
 
 ipcMain.on('create-project', (e, arg) => {
-  console.log(arg)
   e.returnValue = createProject(arg.projectName);
 });
 
-ipcMain.on('create-spec', (e, arg) => {});
+ipcMain.on('create-spec', (e, arg) => {
+  const { specName } = arg;
+  e.returnValue = createProject(specName);
+});
 
 ipcMain.on('save-project', (e, arg) => {
   const { name } = arg;
   const projectStatusPath = path.join(baseDir, name, 'status.json');
   try {
     fs.writeFileSync(projectStatusPath, JSON.stringify(arg), {
-      encoding: 'utf8',
+      encoding: 'utf8'
     });
     e.returnValue = true;
   } catch (err) {

@@ -2,12 +2,14 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const Papa = require('papaparse');
-const request = require('request');
 
 const projectBaseDir = 'projects';
 
 global.assert = require('assert');
-global.request = requrie('request')
+global.request = require('axios');
+require('chai/register-assert');
+require('chai/register-expect');
+require('chai/register-should');
 
 function clearRequireCache() {
   Object.keys(require.cache).forEach((key) => {
@@ -28,8 +30,6 @@ ipcMain.on('run-test', (event, arg) => {
     return Papa.parse(fs.readFileSync(path.join(projectPath, 'datasets', filePath), 'utf8')).data;
   };
 
-
-
   mocha.addFile(specPath);
 
   const runner = mocha.run((failed) => {
@@ -43,6 +43,6 @@ ipcMain.on('run-test', (event, arg) => {
   runner.on('test end', (test) => {
     totalTest += 1;
     const { state, title } = test;
-    cases.push({ state, title });
+    cases.push({ state, title, id: totalTest });
   });
 });
