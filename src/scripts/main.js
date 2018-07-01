@@ -322,7 +322,7 @@ $(document).ready(() => {
 
   function freshSpecs() {
     specs = getSpecs();
-    console.log(specs);
+    currentSpec && currentSpec.deactivate()
     $specBox.find('.list-group-item').remove();
     specs.forEach((spec) => {
       $specBox.append(spec.$el);
