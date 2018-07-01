@@ -62,12 +62,13 @@ function createProject(name) {
   }
 }
 
-function createSpec(name) {
-  const projectPath = path.join(baseDir, name);
+function createSpec(arg) {
+  const { projectName, specName } = arg;
+  const projectPath = path.join(baseDir, projectName);
   try {
     fs.writeFileSync(
-      path.join(projectPath, `${name}.js`),
-      JSON.stringify('// Write some cases here'),
+      path.join(projectPath, 'specs', `${specName}.js`),
+      '// Write some cases here',
       {
         encoding: 'utf8'
       }
@@ -84,8 +85,7 @@ ipcMain.on('create-project', (e, arg) => {
 });
 
 ipcMain.on('create-spec', (e, arg) => {
-  const { specName } = arg;
-  e.returnValue = createProject(specName);
+  e.returnValue = createSpec(arg);
 });
 
 ipcMain.on('save-project', (e, arg) => {

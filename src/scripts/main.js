@@ -196,7 +196,7 @@ $(document).ready(() => {
   const $specDesc = $('#spec-desc');
   const $play = $('#run-task');
   const $createProject = $('#create-project');
-  const $createSpec = $('#createSpec');
+  const $createSpec = $('#create-spec');
   const $cases = $('#cases');
   const $dragBox = $('#drag-box');
   const $bugBox = $('#bug-box');
@@ -285,6 +285,7 @@ $(document).ready(() => {
 
   function freshSpecs() {
     specs = getSpecs();
+    console.log(specs);
     $specBox.find('.list-group-item').remove();
     specs.forEach((spec) => {
       $specBox.append(spec.$el);
@@ -310,7 +311,7 @@ $(document).ready(() => {
   function save() {
     const res = currentProject.save() && submitCode();
     if (res) {
-      freshSpecs();
+      freshStatus();
     }
   }
 
@@ -372,9 +373,11 @@ $(document).ready(() => {
     })
       .then((value) => {
         if (value) {
-          return ipcRenderer.send('create-spec', {
-            specName: value
+          const res = ipcRenderer.sendSync('create-spec', {
+            specName: value,
+            projectName: currentProject.name
           });
+          if (res) return value;
         }
       })
       .catch(console.error);
@@ -433,8 +436,10 @@ $(document).ready(() => {
     });
     $createSpec.click((e) => {
       createSpec().then((name) => {
-        if (res) {
-          currentProject.addCase();
+        if (name) {
+          currentProject.addSpec(name);
+          save();
+          freshSpecs();
         }
       });
     });
