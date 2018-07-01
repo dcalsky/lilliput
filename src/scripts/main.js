@@ -15,9 +15,9 @@ let currentMenuSpec = null;
 class Bug {
   constructor(status) {
     this.id = status.id;
-    this.desc = status.desc;
+    this.desc = status.desc || '';
+    this.name = status.name;
     this.cases = status.cases || [];
-    this.tags = status.tags || [];
     this.finished = status.finished || false;
     this.$el = $('<li class="list-group-item"></li>');
     this.updateStatus();
@@ -26,21 +26,40 @@ class Bug {
     // });
   }
 
+  bindEvents() {
+    this.$finished.change((e) => {
+      this.finished = e.target.checked;
+      console.log(this.finished);
+    });
+    this.$tag.change((e) => {
+      this.desc = e.target.value;
+    });
+  }
+
   updateStatus() {
-    const $finished = $(`<input type="checkbox" ${this.finished && 'true'}/>`);
+    this.$finished = $(`<input type="checkbox" ${this.finished ? 'checked' : ''}/>`);
+    this.$tag = $('<input type="text">').val(this.desc);
     this.$el = $('<li class="list-group-item"></li>').html(`
     <div class="media-body">
-    <p><label class="bug-finished">Finished </label></p>
     <strong>ID: ${this.id}</strong>
+    <p>Name: ${this.name}</p>
     <p>Cases: ${this.cases.map(item => `<span class="bug-case">${item}</span>`)}</p>
-    <p>Description: ${this.desc}</p>
+    <p class="bug-tag">Tag: </p>
+    <p><label class="bug-finished">Is Finished </label></p>
   </div>
     `);
-    this.$el.find('.bug-finished').append($finished);
+    this.$el.find('.bug-finished').append(this.$finished);
+    this.$el.find('.bug-tag').append(this.$tag);
   }
 
   toggleFinish(finished) {
     this.finished = finished;
+  }
+
+  updateBaseInfo(name, desc) {
+    this.name = name;
+    this.desc = desc;
+    this.updateStatus();
   }
 
   getBaseInfo() {
@@ -49,7 +68,8 @@ class Bug {
       desc: this.desc,
       cases: this.cases,
       tags: this.tags,
-      finished: this.finished
+      finished: this.finished,
+      name: this.name
     };
   }
 
@@ -67,7 +87,9 @@ class Case {
     this.title = status.title;
     this.id = status.id;
     this.$el = $('<tr></tr>').html(
-      `<td>${this.id}</td><td>${this.title}</td><td>${this.state}</td>`
+      `<td>${this.id}</td><td>${this.title}</td><td ${
+        this.state === 'failed' ? 'style="color: red"' : ''
+      }>${this.state}</td>`
     );
   }
 
@@ -114,8 +136,8 @@ class Spec {
     });
   }
 
-  createBug(desc) {
-    this.bugs.push(new Bug({ desc, id: this.bugs.length + 1 }));
+  createBug(name) {
+    this.bugs.push(new Bug({ name, id: this.bugs.length + 1 }));
   }
 
   updatePassedStatus() {
@@ -286,6 +308,7 @@ $(document).ready(() => {
     }
     currentSpec.bugs.forEach((item) => {
       $bugBox.append(item.$el);
+      item.bindEvents();
     });
   }
   function switchSpec(spec) {
@@ -369,7 +392,7 @@ $(document).ready(() => {
   function createBug() {
     return prompt({
       title: 'Lilliput',
-      label: "What's the description of this bug?",
+      label: "What's the name of this bug?",
       type: 'input'
     })
       .then((value) => {
@@ -468,9 +491,9 @@ $(document).ready(() => {
       });
     });
     $createBug.click((e) => {
-      createBug().then((desc) => {
-        if (desc) {
-          currentSpec.createBug(desc);
+      createBug().then((name) => {
+        if (name) {
+          currentSpec.createBug(name);
           save();
           freshBugs();
         }

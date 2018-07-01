@@ -40,3 +40,9 @@
   margin: 0 2.5px;
   font-weight: 600;
 }
+
+#bug-box .bug-tag input {
+  border: none;
+  outline: none;
+  cursor: text;
+}
