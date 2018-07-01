@@ -21,15 +21,11 @@ class Bug {
     this.finished = status.finished || false;
     this.$el = $('<li class="list-group-item"></li>');
     this.updateStatus();
-    // $finished.change((e) => {
-    //   console.log(e);
-    // });
   }
 
   bindEvents() {
     this.$finished.change((e) => {
       this.finished = e.target.checked;
-      console.log(this.finished);
     });
     this.$tag.change((e) => {
       this.desc = e.target.value;
@@ -322,7 +318,7 @@ $(document).ready(() => {
 
   function freshSpecs() {
     specs = getSpecs();
-    currentSpec && currentSpec.deactivate()
+    currentSpec && currentSpec.deactivate();
     $specBox.find('.list-group-item').remove();
     specs.forEach((spec) => {
       $specBox.append(spec.$el);
@@ -447,7 +443,6 @@ $(document).ready(() => {
           currentProject.removeSpec(currentMenuSpec);
           save();
           freshSpecs();
-          console.log(currentProject);
         }
       })
     );
@@ -515,6 +510,9 @@ $(document).ready(() => {
       currentSpec.cases = cases.map(c => new Case(c));
       currentProject.save();
       freshStatus();
+    });
+    ipcRenderer.on('focus', (event) => {
+      freshSpecCode();
     });
     initCaseMenu();
     initSpecMenu();

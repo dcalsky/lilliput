@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 require('electron-reload')(__dirname);
 require('./core/task');
 require('./core/project');
@@ -21,6 +21,10 @@ app.on('ready', () => {
     acceptFirstMouse: true,
     titleBarStyle: 'hidden',
     maximizable: false
+  });
+  const { webContents } = mainWindow;
+  mainWindow.on('focus', () => {
+    webContents.webContents.send('focus');
   });
   mainWindow.loadURL(`file://${__dirname}/index.html`);
   mainWindow.on('closed', () => {
