@@ -1,0 +1,7 @@
+{
+  "id": 2,
+  "name": "project 2",
+  "faliures": 1,
+  "passed": 1,
+  "specs": [{ "id": 1, "name": "test1", "desc": "", "passed": true }]
+}

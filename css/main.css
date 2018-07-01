@@ -1,0 +1,32 @@
+.drag-box {
+  border: 1px dashed #d9d9d9;
+  width: 100%;
+  height: 124px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #fafafa;
+  text-align: center;
+  cursor: pointer;
+  -webkit-transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease;
+  vertical-align: top;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  display: table;
+}
+
+.drag-box:hover {
+  border-color: #1890ff;
+}
+
+.drag-box .drag-icon {
+    cursor: pointer;
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.drag-box p {
+    cursor: pointer;
+    font-size: 1.1rem;
+    margin: 5px 0;
+}
