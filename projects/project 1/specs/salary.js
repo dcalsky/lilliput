@@ -11,6 +11,10 @@ function getResult(a, b, c) {
   return extract;
 }
 
+bench('String#indexOf', function() {
+  'Hello World!'.indexOf('o') > -1;
+})
+
 describe('salary', () => {
   let dataset = readCSV('salary.csv');
   dataset = dataset.slice(1);

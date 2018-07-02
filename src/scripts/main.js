@@ -115,6 +115,7 @@ class Spec {
     this.id = status.id;
     this.name = status.name;
     this.desc = status.desc || '';
+    this.benchs = status.benchs || [];
     this.bugs = bugs.map(item => new Bug(item));
     this.cases = cases.map(item => new Case(item));
     this.$el = $('<li class="list-group-item"></li>');
@@ -156,6 +157,7 @@ class Spec {
       name: this.name,
       desc: this.desc,
       id: this.id,
+      benchs: this.benchs,
       failed: this.failed,
       cases: this.cases.map(item => item.getBaseInfo()),
       bugs: this.bugs.map(item => item.getBaseInfo())
@@ -233,6 +235,8 @@ $(document).ready(() => {
   const $dragBox = $('#drag-box');
   const $bugBox = $('#bug-box');
   const $createBug = $('#create-bug');
+  const $benchBox = $('#bench-box');
+  const $benchs = $('#benchs');
   const editor = CodeMirror(document.getElementById('editor'), {
     value: '',
     lineNumbers: true,
@@ -294,8 +298,18 @@ $(document).ready(() => {
     freshSpecCode();
     freshBugs();
     freshChart();
+    freshBenchs();
   }
-
+  function freshBenchs() {
+    $benchs.empty();
+    $benchBox.hide();
+    if (currentSpec.benchs.length > 0) {
+      $benchBox.show();
+    }
+    currentSpec.benchs.forEach((bench) => {
+      $benchs.append($('<tr></tr>').html(`<td>${bench}</td>`));
+    });
+  }
   function freshBugs() {
     $bugBox.empty();
 
@@ -509,6 +523,12 @@ $(document).ready(() => {
       currentSpec.failed = failed;
       currentSpec.cases = cases.map(c => new Case(c));
       currentProject.save();
+      freshStatus();
+    });
+    ipcRenderer.on('run-bench-resp', (event, arg) => {
+      const { benchs } = arg;
+      currentSpec.benchs = benchs;
+      save();
       freshStatus();
     });
     ipcRenderer.on('focus', (event) => {
